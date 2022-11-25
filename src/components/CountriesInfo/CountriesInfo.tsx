@@ -8,21 +8,27 @@ interface Props {
 
 const CountriesInfo: React.FC<Props> = ({alphaCode}) => {
   const [countryInfo, setCountryInfo] = useState<CountryInfo | null>(null);
-  // const [borders, setBorders] = useState<string | undefined>();
+  const [borders, setBorders] = useState<string[]>([]);
 
   const fetchCountryInfo = useCallback(async (alphaCode: string) => {
-    const countryResponse = await axios.get('v2/alpha/' + alphaCode);
+    let newBorders: string[] = ['No borders'];
+    const countryResponse = await axios.get<CountryInfo>('v2/alpha/' + alphaCode);
     setCountryInfo(countryResponse.data);
+    if (countryResponse.data.borders) {
+      const promises = (countryResponse.data.borders).map(async (border: string) => {
+        const borderResponse = await axios.get<CountryInfo>('v2/alpha/' + border);
+        return borderResponse.data.name;
+      });
+      newBorders = await Promise.all(promises);
+    }
+    setBorders(newBorders);
   }, []);
-
 
   useEffect(() => {
     if (alphaCode !== null) {
       fetchCountryInfo(alphaCode).catch(console.error);
     }
   }, [alphaCode, fetchCountryInfo]);
-
-  console.log(countryInfo?.borders);
 
   return countryInfo ? (
     <div className="col m-4 border p-4 rounded border-2 bg-primary bg-opacity-10">
@@ -32,9 +38,14 @@ const CountriesInfo: React.FC<Props> = ({alphaCode}) => {
         <p>Population: {countryInfo.population}</p>
         <img
           src={countryInfo.flag} style={{width: '236px', height: '158px'}}
-          className="border"
+          className="border m-3"
           alt="flag"
         />
+        <ul className="list-group list-group-flush mt-5">Borders:
+          {borders.map(border => (
+            <li className="list-group-item" key={Math.random()}>{border}</li>
+          ))}
+        </ul>
       </div>
     </div>
   ) : (
@@ -44,7 +55,6 @@ const CountriesInfo: React.FC<Props> = ({alphaCode}) => {
       </div>
     </div>
   );
-
 };
 
 export default CountriesInfo;
