@@ -1,10 +1,10 @@
 import React from 'react';
-import LeftSide from "../components/LeftSide/LeftSide";
+import CountriesLis from "../components/CountriesList/CountriesList";
 
 function App() {
   return (
-    <div className="App">
-      <LeftSide/>
+    <div className="bg-secondary bg-opacity-10">
+      <CountriesLis/>
     </div>
   );
 }
